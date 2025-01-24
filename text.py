@@ -1,12 +1,13 @@
 import os
 import speech_recognition as sr
 import pyttsx3
-import pywhatkit
+import webbrowser
+import subprocess
 
-# Sesli yanıt vermek için motor ayarı
+# Termux TTS kullanımı için pyttsx3
 engine = pyttsx3.init()
-engine.setProperty('rate', 150)  # Konuşma hızı
-engine.setProperty('volume', 0.9)  # Ses seviyesi
+engine.setProperty('rate', 150)
+engine.setProperty('volume', 0.9)
 
 def speak(text):
     """Metni sese çevirir."""
@@ -18,34 +19,36 @@ def listen():
     recognizer = sr.Recognizer()
     with sr.Microphone() as source:
         print("Dinliyorum...")
-        recognizer.adjust_for_ambient_noise(source)  # Arka plan gürültüsünü ayarlar
+        recognizer.adjust_for_ambient_noise(source)
         try:
             audio = recognizer.listen(source, timeout=5)
-            command = recognizer.recognize_google(audio, language='tr-TR')  # Türkçe dil desteği
-            print(f"Söylenen: {command}")
+            command = recognizer.recognize_google(audio, language='tr-TR')
+            print(f"Söylediğiniz: {command}")
             return command.lower()
         except sr.UnknownValueError:
             speak("Sizi anlayamadım, lütfen tekrar edin.")
         except sr.RequestError:
             speak("Google API'ye bağlanılamadı.")
         except Exception as e:
-            print(f"Hata: {e}")
+            speak(f"Bir hata oluştu: {e}")
         return ""
 
 def execute_command(command):
     """Komutları analiz eder ve çalıştırır."""
     if "dosya oluştur" in command:
         try:
-            with open("/sdcard/Download/yeni_dosya.txt", "w") as file:
+            file_path = "/sdcard/Download/yeni_dosya.txt"
+            with open(file_path, "w") as file:
                 file.write("Bu bir test dosyasıdır.")
-            speak("Dosya oluşturuldu ve yazıldı.")
+            speak(f"Dosya oluşturuldu: {file_path}")
         except Exception as e:
             speak(f"Bir hata oluştu: {e}")
     elif "youtube aç" in command:
         speak("Hangi videoyu açmamı istersiniz?")
         video = listen()
         if video:
-            pywhatkit.playonyt(video)
+            url = f"https://www.youtube.com/results?search_query={video.replace(' ', '+')}"
+            webbrowser.open(url)
             speak(f"{video} YouTube'da açılıyor.")
     elif "dur" in command:
         speak("Program sonlandırılıyor.")
